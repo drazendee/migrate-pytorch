@@ -16,6 +16,7 @@ import os
 from tempfile import TemporaryDirectory
 import shutil
 import valohai
+import json
 
 cudnn.benchmark = True
 
@@ -23,6 +24,10 @@ dataset = valohai.inputs("preprocessed_dataset").path(process_archives=False)
 shutil.unpack_archive(dataset, 'preprocessed', 'zip') 
 
 data_dir = 'preprocessed/hymenoptera_data'
+
+num_epochs = valohai.parameters("num_epochs").value
+step_size = valohai.parameters("step_size").value
+lr = valohai.parameters("lr").value
 
 image_datasets = {}
 dataloaders = {}
@@ -91,6 +96,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                 print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
+                print(json.dumps({
+                    f"{phase}_loss": f"{epoch_loss:.4f}",
+                    f"{phase}_accuracy": f"{epoch_acc:.4f}",
+                }))
+
                 # deep copy the model
                 if phase == 'val' and epoch_acc > best_acc:
                     best_acc = epoch_acc
@@ -101,6 +111,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         time_elapsed = time.time() - since
         print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
         print(f'Best val Acc: {best_acc:4f}')
+        print(json.dumps({
+            f"best_accuracy": f"{best_acc:.4f}",
+        }))
 
         # load best model weights
         model.load_state_dict(torch.load(best_model_params_path))
@@ -117,10 +130,10 @@ model_ft = model_ft.to(device)
 criterion = nn.CrossEntropyLoss()
 
 # Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+optimizer_ft = optim.SGD(model_ft.parameters(), lr=lr, momentum=0.9)
 
 # Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=step_size, gamma=0.1)
 
 # Get a batch of training data
 inputs, classes = next(iter(dataloaders['train']))
@@ -129,7 +142,7 @@ inputs, classes = next(iter(dataloaders['train']))
 out = torchvision.utils.make_grid(inputs)
 
 model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                    num_epochs=5)
+                    num_epochs=num_epochs)
 
 # get an output path where you can save the model
 model_output_path = valohai.outputs().path('model.pth')
