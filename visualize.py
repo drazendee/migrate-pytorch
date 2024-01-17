@@ -8,8 +8,16 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import os
 from PIL import Image
+import valohai
+import shutil
 
-model = torch.load('output/model.pth')
+dataset = valohai.inputs("preprocessed_dataset").path(process_archives=False)
+shutil.unpack_archive(dataset, 'preprocessed', 'zip')
+
+model_path = valohai.inputs("model").path()
+model = torch.load(model_path)
+
+img_path = valohai.inputs("image").path()
 
 was_training = model.training
 model.eval()
@@ -59,9 +67,10 @@ def imshow(inp, title=None):
     plt.imshow(inp)
     if title is not None:
         plt.title(title)
+    plt.savefig('/valohai/outputs/plot.png')
     plt.show()  # pause a bit so that plots are updated
 
 visualize_model_predictions(
     model,
-    img_path='raw_data/hymenoptera_data/val/bees/72100438_73de9f17af.jpg'
+    img_path=img_path
 )

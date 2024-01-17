@@ -14,8 +14,13 @@ from torchvision import datasets, models, transforms
 import time
 import os
 from tempfile import TemporaryDirectory
+import shutil
+import valohai
 
 cudnn.benchmark = True
+
+dataset = valohai.inputs("preprocessed_dataset").path(process_archives=False)
+shutil.unpack_archive(dataset, 'preprocessed', 'zip') 
 
 data_dir = 'preprocessed/hymenoptera_data'
 
@@ -117,14 +122,15 @@ optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
-if __name__ == '__main__':
-    # Get a batch of training data
-    inputs, classes = next(iter(dataloaders['train']))
+# Get a batch of training data
+inputs, classes = next(iter(dataloaders['train']))
 
-    # Make a grid from batch
-    out = torchvision.utils.make_grid(inputs)
+# Make a grid from batch
+out = torchvision.utils.make_grid(inputs)
 
-    model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                        num_epochs=5)
-    
-    torch.save(model_ft, "output/model.pth")
+model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
+                    num_epochs=5)
+
+# get an output path where you can save the model
+model_output_path = valohai.outputs().path('model.pth')
+torch.save(model_ft, model_output_path)

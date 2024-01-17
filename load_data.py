@@ -9,6 +9,13 @@ import matplotlib.pyplot as plt
 import glob
 import os
 from PIL import Image
+import valohai
+import shutil
+
+# get path to input
+dataset = valohai.inputs("dataset").path(process_archives=False)
+# unzip the file to the raw_data directory
+shutil.unpack_archive(dataset, 'raw_data', 'zip')
 
 cudnn.benchmark = True
 plt.ion()   # interactive mode
@@ -50,3 +57,8 @@ for filepath in glob.iglob("raw_data/**/*.*", recursive=True):
     os.makedirs(output_dir, exist_ok=True)
 
     save_image(transformed_image, output_filepath)
+
+# Get path to output file
+output_file_path = valohai.outputs().path('preprocessed_images.zip')
+# Make the preprocessed directory a zip file in Valohai outputs
+shutil.make_archive(output_file_path, 'zip', 'preprocessed')

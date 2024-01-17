@@ -6,3 +6,41 @@
     - python load_data.py
     - python train.py
     - python visualize.py
+
+- step:
+    name: load-data
+    image: docker.io/python:3.10
+    command:
+    - pip install -r requirements.txt
+    - python load_data.py
+    inputs:
+    - name: dataset
+      default: https://download.pytorch.org/tutorial/hymenoptera_data.zip
+
+- step:
+    name: train-model
+    image: docker.io/python:3.10
+    command:
+    - pip install -r requirements.txt
+    - python train.py {parameters}
+    inputs:
+    - name: preprocessed_dataset
+      default: datum://018d180e-22a5-f40f-ac6f-c2140d7c74e7
+      optional: false
+
+- step:
+    name: inference
+    image: docker.io/python:3.10
+    command:
+    - pip install -r requirements.txt
+    - python visualize.py
+    inputs:
+    - name: preprocessed_dataset
+      default: datum://018d180e-22a5-f40f-ac6f-c2140d7c74e7
+      optional: false
+    - name: model
+      default: datum://018d181e-476e-6d24-a7c4-ef9efda9b383
+      optional: false
+    - name: image
+      default: datum://018d1822-c8bc-28dd-729c-c4b4cafc3e8f
+      optional: false
