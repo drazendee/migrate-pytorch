@@ -50,8 +50,31 @@
       default: datum://018d180e-22a5-f40f-ac6f-c2140d7c74e7
       optional: false
     - name: model
-      default: datum://018d181e-476e-6d24-a7c4-ef9efda9b383
+      default: datum://latest-model
       optional: false
     - name: image
       default: datum://018d1822-c8bc-28dd-729c-c4b4cafc3e8f
       optional: false
+
+- pipeline:
+    name: training_inference
+    nodes:
+    - name: load_data
+      type: execution
+      step: load-data
+    - name: train
+      type: execution
+      step: train-model
+      override:
+        inputs:
+          - name: preprocessed_dataset
+    - name: inference
+      type: execution
+      step: inference
+      override:
+        inputs:
+          - name: preprocessed_dataset
+    edges:
+    - [load_data.outputs.*.zip, train.input.preprocessed_dataset]
+    - [load_data.outputs.*.zip, inference.input.preprocessed_dataset]
+    - [train.outputs.*.pth, inference.input.model]
