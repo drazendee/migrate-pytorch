@@ -147,3 +147,10 @@ model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
 # get an output path where you can save the model
 model_output_path = valohai.outputs().path('model.pth')
 torch.save(model_ft, model_output_path)
+
+file_metadata = {
+    "valohai.alias": "latest-model"
+}
+
+with open(f"{model_output_path}.metadata.json", "w") as f:
+    json.dump(file_metadata, f)
