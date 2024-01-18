@@ -1,8 +1,0 @@
-- step:
-    name: run-all
-    image: docker.io/python:3.10
-    command:
-    - pip install -r requirements.txt
-    - python load_data.py
-    - python train.py
-    - python visualize.py
